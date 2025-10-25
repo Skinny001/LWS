@@ -24,27 +24,43 @@ export default function Home() {
   }, [])
 
   const handleStakeEvent = useCallback((event: StakeEvent) => {
-    setActivities((prev) => [
-      {
-        id: `stake-${event.roundId}-${event.timestamp}`,
-        type: "stake",
-        data: event,
-        timestamp: event.timestamp,
-      },
-      ...prev.slice(0, 9),
-    ])
+    setActivities((prev) => {
+      let baseId = `stake-${event.roundId}-${event.timestamp}`
+      let id = baseId
+      // Ensure uniqueness in the current list
+      if (prev.some(a => a.id === id)) {
+        id = `${baseId}-${Math.floor(Math.random() * 100000)}`
+      }
+      return [
+        {
+          id,
+          type: "stake",
+          data: event,
+          timestamp: event.timestamp,
+        },
+        ...prev.slice(0, 9),
+      ]
+    })
   }, [])
 
   const handleRoundEndedEvent = useCallback((event: RoundEndedEvent) => {
-    setActivities((prev) => [
-      {
-        id: `round-end-${event.roundId}-${event.timestamp}`,
-        type: "round_end",
-        data: event,
-        timestamp: event.timestamp,
-      },
-      ...prev.slice(0, 9),
-    ])
+    setActivities((prev) => {
+      let baseId = `round-end-${event.roundId}-${event.timestamp}`
+      let id = baseId
+      // Ensure uniqueness in the current list
+      if (prev.some(a => a.id === id)) {
+        id = `${baseId}-${Math.floor(Math.random() * 100000)}`
+      }
+      return [
+        {
+          id,
+          type: "round_end",
+          data: event,
+          timestamp: event.timestamp,
+        },
+        ...prev.slice(0, 9),
+      ]
+    })
   }, [])
 
   useContractEvents(handleStakeEvent, undefined, handleRoundEndedEvent)
