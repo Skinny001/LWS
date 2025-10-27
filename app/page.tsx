@@ -102,29 +102,31 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-background">
-      {/* Header */}
+      {/* Header - mobile responsive */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+          <div className="flex flex-row items-center gap-2 w-full sm:w-auto">
             <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out">
               <span className="text-accent-foreground font-bold">LSW</span>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">Last Staker Wins</h1>
+              <h1 className="text-lg sm:text-xl font-bold text-foreground">Last Staker Wins</h1>
               <p className="text-xs text-muted-foreground">Hedera Testnet</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            <div className="text-left sm:text-right w-full sm:w-auto">
               <div className="text-sm text-muted-foreground">Round #{roundInfo.roundId.toString()}</div>
             </div>
-            <WalletButton />
+            <div className="w-full sm:w-auto flex flex-row sm:flex-row items-center gap-2">
+              <WalletButton />
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+      {/* Main Content - mobile responsive */}
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8 space-y-6 sm:space-y-8">
         {/* Game Status Banner */}
         <div className="slide-in-up">
           <GameStatus
@@ -136,7 +138,7 @@ export default function Home() {
         </div>
 
         {/* Timer Section */}
-        <div className="bg-card border border-border rounded-lg p-8 text-center slide-in-up">
+        <div className="bg-card border border-border rounded-lg p-4 sm:p-8 text-center slide-in-up">
           <TimerDisplay
             timeRemaining={timeRemaining}
             timeUntilStaking={timeUntilStaking}
@@ -145,8 +147,8 @@ export default function Home() {
           />
         </div>
 
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Grid - mobile responsive */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
           {/* Left Column - Prize Pool */}
           <div className="lg:col-span-1 slide-in-up">
             <PrizePoolCard
