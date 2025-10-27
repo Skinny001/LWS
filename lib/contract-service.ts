@@ -141,15 +141,21 @@ export async function watchStakeEvents(
 ) {
   const unsubscribe = createLogPoller("StakeReceived", (log) => {
     try {
-  const parsed: any = decodeEventLog({ abi: LSW_ABI as any, data: log.data, topics: log.topics })
-  const roundId = BigInt(parsed.args?.[0] ?? parsed.roundId ?? BigInt(0))
-  const staker = String(parsed.args?.[1] ?? parsed.staker ?? "0x0000000000000000000000000000000000000000")
-  const amount = BigInt(parsed.args?.[2] ?? parsed.amount ?? BigInt(0))
-  const newDeadline = BigInt(parsed.args?.[3] ?? parsed.newDeadline ?? BigInt(0))
+      const parsed: any = decodeEventLog({ abi: LSW_ABI as any, data: log.data, topics: log.topics })
+      const args = parsed.args || {}
+      // Debug log to inspect args and parsed
+      console.log("StakeReceived event decoded:", { args, parsed })
+      const roundId = BigInt(args[0] ?? args.roundId ?? parsed.roundId ?? BigInt(0))
+      const staker = String(
+        args.staker ?? args[1] ?? parsed.staker ?? "0x0000000000000000000000000000000000000000"
+      )
+      console.log("Extracted staker:", staker)
+      const amount = BigInt(args.amount ?? args[2] ?? parsed.amount ?? BigInt(0))
+      const newDeadline = BigInt(args.newDeadline ?? args[3] ?? parsed.newDeadline ?? BigInt(0))
 
       onStake(roundId, staker, amount, newDeadline)
     } catch (err) {
-      // ignore decode errors
+      console.error("Error decoding StakeReceived event:", err)
     }
   })
 
@@ -180,14 +186,20 @@ export async function watchRoundEndedEvents(
 ) {
   const unsubscribe = createLogPoller("RoundEnded", (log) => {
     try {
-  const parsed: any = decodeEventLog({ abi: LSW_ABI as any, data: log.data, topics: log.topics })
-  const roundId = BigInt(parsed.args?.[0] ?? parsed.roundId ?? BigInt(0))
-  const winner = String(parsed.args?.[1] ?? parsed.winner ?? "0x0000000000000000000000000000000000000000")
-  const totalAmount = BigInt(parsed.args?.[2] ?? parsed.totalAmount ?? BigInt(0))
+      const parsed: any = decodeEventLog({ abi: LSW_ABI as any, data: log.data, topics: log.topics })
+      const args = parsed.args || {}
+      // Debug log to inspect args and parsed
+      console.log("RoundEnded event decoded:", { args, parsed })
+      const roundId = BigInt(args[0] ?? args.roundId ?? parsed.roundId ?? BigInt(0))
+      const winner = String(
+        args.winner ?? args[1] ?? parsed.winner ?? "0x0000000000000000000000000000000000000000"
+      )
+      console.log("Extracted winner:", winner)
+      const totalAmount = BigInt(args.totalAmount ?? args[2] ?? parsed.totalAmount ?? BigInt(0))
 
       onRoundEnded(roundId, winner, totalAmount)
     } catch (err) {
-      // ignore
+      console.error("Error decoding RoundEnded event:", err)
     }
   })
 
@@ -216,7 +228,7 @@ export async function fetchRecentRounds(limit = 10) {
     ]
   }
 
-  // query recent logs for RoundEnded events from a recent block window
+  // query recent logs for RoundEnded and RewardsDistributed events from a recent block window
   try {
     const currentBlock = BigInt(await publicClient.getBlockNumber())
     const fromBlock = currentBlock > BigInt(1000) ? currentBlock - BigInt(1000) : BigInt(0)
@@ -226,7 +238,8 @@ export async function fetchRecentRounds(limit = 10) {
       toBlock: currentBlock,
     })
 
-    const events: Array<any> = []
+    // Parse events for each round
+    const rounds: Record<string, any> = {}
     for (const log of logs) {
       try {
         const parsed: any = decodeEventLog({ abi: LSW_ABI as any, data: log.data, topics: log.topics })
@@ -234,15 +247,39 @@ export async function fetchRecentRounds(limit = 10) {
           const roundId = BigInt(parsed.args?.[0] ?? parsed.roundId ?? BigInt(0))
           const winner = String(parsed.args?.[1] ?? parsed.winner ?? "0x0000000000000000000000000000000000000000")
           const totalAmount = BigInt(parsed.args?.[2] ?? parsed.totalAmount ?? BigInt(0))
-          events.push({ roundId, winner, totalAmount, timestamp: Date.now() })
+          rounds[roundId.toString()] = { roundId, winner, totalAmount, timestamp: Date.now() }
+        }
+        if (parsed?.name === "RewardsDistributed" || parsed?.eventName === "RewardsDistributed") {
+          const roundId = BigInt(parsed.args?.[0] ?? parsed.roundId ?? BigInt(0))
+          const randomWinners = parsed.args?.winners ?? []
+          const rewardPerWinner = BigInt(parsed.args?.rewardPerWinner ?? BigInt(0))
+          const treasuryAmount = BigInt(parsed.args?.treasuryAmount ?? BigInt(0))
+          if (rounds[roundId.toString()]) {
+            rounds[roundId.toString()].rewards = {
+              randomWinners,
+              rewardPerWinner,
+              treasuryAmount,
+            }
+          } else {
+            rounds[roundId.toString()] = {
+              roundId,
+              rewards: {
+                randomWinners,
+                rewardPerWinner,
+                treasuryAmount,
+              },
+              timestamp: Date.now(),
+            }
+          }
         }
       } catch (err) {
         // skip
       }
     }
 
-    // pick the most recent `limit` events
-    return events.slice(-limit).reverse()
+    // pick the most recent `limit` rounds
+    const sorted = Object.values(rounds).sort((a, b) => Number(b.roundId) - Number(a.roundId))
+    return sorted.slice(0, limit)
   } catch (err) {
     return []
   }

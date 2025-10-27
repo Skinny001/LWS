@@ -16,6 +16,28 @@ export function formatEther(value: bigint): string {
   return `${whole}.${remainderStr}`
 }
 
+// Parse a decimal string (e.g. "0.01") into wei (bigint). Returns null for invalid input.
+export function parseEther(input: string): bigint | null {
+  if (typeof input !== "string") return null
+  const s = input.trim()
+  if (s.length === 0) return null
+  const match = s.match(/^([0-9]+)(?:\.([0-9]+))?$/)
+  if (!match) return null
+  const whole = match[1]
+  const fraction = match[2] ?? ""
+  const decimals = 18
+  if (fraction.length > decimals) {
+    // too many decimals
+    return null
+  }
+  const wholeBig = BigInt(whole)
+  let fracStr = fraction.padEnd(decimals, "0")
+  const fracBig = BigInt(fracStr)
+  let divisor = BigInt(1)
+  for (let i = 0; i < decimals; i++) divisor *= BigInt(10)
+  return wholeBig * divisor + fracBig
+}
+
 export function formatAddress(address: string): string {
   if (!address) return ""
   return `${address.slice(0, 6)}...${address.slice(-4)}`

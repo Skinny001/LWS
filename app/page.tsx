@@ -13,6 +13,7 @@ import { WalletButton } from "@/components/wallet-button"
 import { AdminPanel } from "@/components/admin-panel"
 
 export default function Home() {
+  const [stakeAmountUpdated, setStakeAmountUpdated] = useState(0)
   const { roundInfo, timeRemaining, timeUntilStaking, isStakingAvailable, loading, error } = useContractRead()
   type ActivityType = "stake" | "round_end" | "round_start"
   type Activity = { id: string; type: ActivityType; data: any; timestamp: number }
@@ -94,6 +95,11 @@ export default function Home() {
 
   const isRoundExpired = Number(timeRemaining) === 0
 
+  // Callback to trigger refresh
+  const handleStakeAmountUpdate = () => {
+    setStakeAmountUpdated(Date.now())
+  }
+
   return (
     <main className="min-h-screen bg-background">
       {/* Header */}
@@ -156,6 +162,7 @@ export default function Home() {
               isStakingAvailable={isStakingAvailable}
               isRoundExpired={isRoundExpired}
               isActive={roundInfo.isActive}
+              stakeAmountUpdated={stakeAmountUpdated}
             />
           </div>
 
@@ -170,7 +177,7 @@ export default function Home() {
           <RoundHistory />
         </div>
         {/* Admin Panel (remove/comment for production) */}
-        <AdminPanel />
+        <AdminPanel onStakeAmountUpdate={handleStakeAmountUpdate} />
       </div>
     </main>
   )

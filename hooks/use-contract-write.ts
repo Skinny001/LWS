@@ -11,7 +11,7 @@ export function useContractWrite() {
   const { isLoading: isWaiting } = useWaitForTransactionReceipt({ hash })
   const [error, setError] = useState<string | null>(null)
 
-  const executeStake = useCallback(async () => {
+  const executeStake = useCallback(async (value?: bigint) => {
     setError(null)
 
     if (!isConnected || !address) {
@@ -24,7 +24,8 @@ export function useContractWrite() {
         address: LSW_CONTRACT_ADDRESS as `0x${string}`,
         abi: LSW_ABI,
         functionName: "stake",
-        value: MINIMUM_STAKE,
+        // allow caller to pass a custom value (must be >= MINIMUM_STAKE)
+        value: value ?? MINIMUM_STAKE,
         account: address,
       })
       return hash
@@ -79,7 +80,7 @@ export function useContractWrite() {
     }
   }, [isConnected, address, writeContract, hash])
 
-  const executeUpdateStakeAmount = useCallback(async (amount: number) => {
+  const executeUpdateStakeAmount = useCallback(async (amount: bigint) => {
     setError(null)
     if (!isConnected || !address) {
       setError("Wallet not connected. Please connect your wallet first.")
@@ -90,7 +91,7 @@ export function useContractWrite() {
         address: LSW_CONTRACT_ADDRESS as `0x${string}`,
         abi: LSW_ABI,
         functionName: "updateStakeAmount",
-        args: [BigInt(amount)],
+        args: [amount],
         account: address,
       })
       return hash
@@ -123,7 +124,7 @@ export function useContractWrite() {
     }
   }, [isConnected, address, writeContract, hash])
 
-  const executeUpdateStakingWaitPeriod = useCallback(async (stakingWaitPeriod: number) => {
+  const executeUpdateStakingWaitPeriod = useCallback(async (stakingWaitPeriod: bigint) => {
     setError(null)
     if (!isConnected || !address) {
       setError("Wallet not connected. Please connect your wallet first.")
@@ -134,7 +135,7 @@ export function useContractWrite() {
         address: LSW_CONTRACT_ADDRESS as `0x${string}`,
         abi: LSW_ABI,
         functionName: "updateStakingWaitPeriod",
-        args: [BigInt(stakingWaitPeriod)],
+        args: [stakingWaitPeriod],
         account: address,
       })
       return hash

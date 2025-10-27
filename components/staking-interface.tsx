@@ -5,18 +5,39 @@ import { useContractWrite } from "@/hooks/use-contract-write"
 import { Button } from "@/components/ui/button"
 import { formatEther } from "@/lib/format-utils"
 import { MINIMUM_STAKE } from "@/lib/hedera-config"
+import { parseEther } from "@/lib/format-utils"
 
 interface StakingInterfaceProps {
   isStakingAvailable: boolean
   isRoundExpired: boolean
   isActive: boolean
+  stakeAmountUpdated?: number;
 }
 
-export function StakingInterface({ isStakingAvailable, isRoundExpired, isActive }: StakingInterfaceProps) {
+export function StakingInterface({ isStakingAvailable, isRoundExpired, isActive, stakeAmountUpdated }: StakingInterfaceProps) {
   const { executeStake, executeStartNewRound, isLoading, error, hash, isConnected, address } = useContractWrite()
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [localError, setLocalError] = useState<string | null>(null)
   const [showWalletPrompt, setShowWalletPrompt] = useState(false)
+  const [stakeInput, setStakeInput] = useState<string>("")
+  const [isAmountValid, setIsAmountValid] = useState<boolean>(true)
+  const [minimumStake, setMinimumStake] = useState<bigint>(MINIMUM_STAKE)
+  // Fetch minimum stake from contract on mount and when round changes
+  useEffect(() => {
+    let mounted = true
+    async function fetchStakeAmount() {
+      try {
+        const { getStakeAmount } = await import("@/lib/contract-service")
+        const stakeAmt = await getStakeAmount()
+        if (mounted) {
+          setMinimumStake(stakeAmt)
+          setStakeInput((prev) => prev === "" ? formatEther(stakeAmt) : prev)
+        }
+      } catch {}
+    }
+    fetchStakeAmount()
+    return () => { mounted = false }
+  }, [isActive, isRoundExpired, stakeAmountUpdated])
 
   useEffect(() => {
     if (hash) {
@@ -38,11 +59,30 @@ export function StakingInterface({ isStakingAvailable, isRoundExpired, isActive 
     if (!isConnected) {
       setShowWalletPrompt(true)
       setLocalError("Please connect your wallet to stake")
+      console.log("Stake failed: wallet not connected")
       return
     }
     setLocalError(null)
     setSuccessMessage(null)
-    await executeStake()
+    // parse input and validate
+    const parsed = parseEther(stakeInput)
+    console.log("Parsed stake input:", stakeInput, "->", parsed)
+    if (parsed === null) {
+      setLocalError("Invalid amount format")
+      console.log("Stake failed: invalid amount format", stakeInput)
+      return
+    }
+    if (parsed < minimumStake) {
+      setLocalError(`Minimum stake is ${formatEther(minimumStake)} HBAR`)
+      console.log("Stake failed: below minimum", parsed, minimumStake)
+      return
+    }
+    try {
+      const result = await executeStake(parsed)
+      console.log("Stake transaction result:", result)
+    } catch (err) {
+      console.log("Stake transaction error:", err)
+    }
   }
 
   const handleStartNewRound = async () => {
@@ -60,14 +100,13 @@ export function StakingInterface({ isStakingAvailable, isRoundExpired, isActive 
     <div className="bg-card border border-border rounded-lg p-6 space-y-4">
       <div className="space-y-2">
         <h3 className="text-lg font-semibold">Stake HBAR</h3>
-        <p className="text-sm text-muted-foreground">Minimum stake: {formatEther(MINIMUM_STAKE)} HBAR</p>
+        <p className="text-sm text-muted-foreground">Minimum stake: {formatEther(minimumStake)} HBAR</p>
         {isConnected && address && (
           <p className="text-xs text-accent">
             Connected: {address.slice(0, 6)}...{address.slice(-4)}
           </p>
         )}
       </div>
-
       {isRoundExpired ? (
         <div className="space-y-3">
           <div className="bg-destructive/10 border border-destructive/30 rounded p-3">
@@ -82,19 +121,10 @@ export function StakingInterface({ isStakingAvailable, isRoundExpired, isActive 
             {isLoading ? "Starting Round..." : "Start New Round"}
           </Button>
         </div>
-      ) : !isActive ? (
-        <div className="space-y-3">
-          <div className="bg-muted/20 border border-muted/30 rounded p-3">
-            <p className="text-sm text-muted-foreground">Waiting for the round to start...</p>
-          </div>
-          <Button disabled className="w-full" size="lg">
-            Staking Not Available
-          </Button>
-        </div>
       ) : !isStakingAvailable ? (
         <div className="space-y-3">
           <div className="bg-orange-500/10 border border-orange-500/30 rounded p-3">
-            <p className="text-sm text-orange-400">Staking is temporarily unavailable. Please wait...</p>
+            <p className="text-sm text-orange-400">Staking is temporarily unavailable.<br />You must wait up to 10 minutes before staking is available again for the next round.</p>
           </div>
           <Button disabled className="w-full" size="lg">
             Staking Unavailable
@@ -102,9 +132,27 @@ export function StakingInterface({ isStakingAvailable, isRoundExpired, isActive 
         </div>
       ) : (
         <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={stakeInput}
+              onChange={(e) => {
+                const v = e.target.value
+                setStakeInput(v)
+                const parsed = parseEther(v)
+                setIsAmountValid(parsed !== null && parsed >= MINIMUM_STAKE)
+              }}
+              className="input input-bordered w-full"
+              aria-label="Stake amount in HBAR"
+            />
+            <div className="text-xs text-muted-foreground">HBAR</div>
+          </div>
+          {!isAmountValid && (
+            <div className="text-xs text-destructive">Amount must be a valid number and at least {formatEther(MINIMUM_STAKE)} HBAR</div>
+          )}
           <Button
             onClick={handleStake}
-            disabled={isLoading || !isConnected}
+            disabled={isLoading || !isConnected || !isAmountValid}
             className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
             size="lg"
           >
@@ -112,7 +160,7 @@ export function StakingInterface({ isStakingAvailable, isRoundExpired, isActive 
               ? "Connect Wallet to Stake"
               : isLoading
                 ? "Processing..."
-                : `Stake ${formatEther(MINIMUM_STAKE)} HBAR`}
+                : `Stake ${stakeInput ?? formatEther(MINIMUM_STAKE)} HBAR`}
           </Button>
         </div>
       )}
