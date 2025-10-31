@@ -1,6 +1,6 @@
 "use client"
 
-import { formatEther } from "@/lib/format-utils"
+import { formatEther, formatHbar } from "@/lib/format-utils"
 
 interface PrizePoolCardProps {
   totalAmount: bigint
@@ -22,7 +22,7 @@ export function PrizePoolCard({ totalAmount, stakersCount, lastStaker }: PrizePo
     <div className="bg-card border border-border rounded-lg p-6 space-y-6">
       <div className="space-y-2">
         <h2 className="text-2xl font-bold text-accent">Prize Pool</h2>
-        <div className="text-4xl font-bold text-foreground">{formatEther(totalAmount)} HBAR</div>
+        <div className="text-4xl font-bold text-foreground">{formatHbar(totalAmount)} HBAR</div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -39,15 +39,15 @@ export function PrizePoolCard({ totalAmount, stakersCount, lastStaker }: PrizePo
       <div className="space-y-3 pt-4 border-t border-border">
         <div className="flex justify-between items-center">
           <span className="text-sm text-muted-foreground">Winner (70%)</span>
-          <span className="font-semibold text-accent">{formatEther(winnerReward)} HBAR</span>
+          <span className="font-semibold text-accent">{formatHbar(winnerReward)} HBAR</span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-sm text-muted-foreground">Random Participants (20%)</span>
-          <span className="font-semibold text-foreground">{formatEther(participantReward)} HBAR</span>
+          <span className="font-semibold text-foreground">{formatHbar(participantReward)} HBAR</span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-sm text-muted-foreground">Treasury (10%)</span>
-          <span className="font-semibold text-foreground">{formatEther(treasuryReward)} HBAR</span>
+          <span className="font-semibold text-foreground">{formatHbar(treasuryReward)} HBAR</span>
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@
 
 import { useContractRead } from "@/hooks/use-contract-read"
 import { useContractEvents, type StakeEvent, type RoundEndedEvent } from "@/hooks/use-contract-events"
+import { useHistoricalStakeEvents } from "@/hooks/use-historical-stake-events"
 import { useState, useCallback, useEffect } from "react"
 import { TimerDisplay } from "@/components/timer-display"
 import { PrizePoolCard } from "@/components/prize-pool-card"
@@ -10,11 +11,15 @@ import { ActivityFeed } from "@/components/activity-feed"
 import { GameStatus } from "@/components/game-status"
 import { RoundHistory } from "@/components/round-history"
 import { WalletButton } from "@/components/wallet-button"
-import { AdminPanel } from "@/components/admin-panel"
+import { useOwnerCheck } from "@/hooks/use-owner-check"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export default function Home() {
   const [stakeAmountUpdated, setStakeAmountUpdated] = useState(0)
   const { roundInfo, timeRemaining, timeUntilStaking, isStakingAvailable, loading, error } = useContractRead()
+  const { isOwner, loading: ownerLoading, isConnected } = useOwnerCheck()
+  const { stakeEvents: historicalStakeEvents } = useHistoricalStakeEvents(roundInfo?.roundId)
   type ActivityType = "stake" | "round_end" | "round_start"
   type Activity = { id: string; type: ActivityType; data: any; timestamp: number }
   const [activities, setActivities] = useState<Activity[]>([])
@@ -23,6 +28,43 @@ export default function Home() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Populate activities with historical stake events when they load
+  useEffect(() => {
+    if (historicalStakeEvents && historicalStakeEvents.length > 0) {
+      setActivities((prev) => {
+        // Convert historical stake events to activities and merge with existing
+        const historicalActivities: Activity[] = historicalStakeEvents.map((event) => ({
+          id: event.id,
+          type: "stake" as const,
+          data: {
+            roundId: event.roundId,
+            staker: event.staker,
+            amount: event.amount,
+            timestamp: event.timestamp,
+          },
+          timestamp: event.timestamp,
+        }))
+
+        // Merge historical and real-time events, removing duplicates
+        const merged = [...historicalActivities]
+        const historicalIds = new Set(historicalActivities.map((a) => a.id))
+
+        // Add real-time events that aren't in historical
+        prev.forEach((activity) => {
+          if (!historicalIds.has(activity.id)) {
+            merged.push(activity)
+          }
+        })
+
+        // Sort by timestamp descending
+        merged.sort((a, b) => b.timestamp - a.timestamp)
+
+        // Keep only the most recent 10
+        return merged.slice(0, 10)
+      })
+    }
+  }, [historicalStakeEvents])
 
   const handleStakeEvent = useCallback((event: StakeEvent) => {
     setActivities((prev) => {
@@ -118,6 +160,13 @@ export default function Home() {
             <div className="text-left sm:text-right w-full sm:w-auto">
               <div className="text-sm text-muted-foreground">Round #{roundInfo.roundId.toString()}</div>
             </div>
+            {isOwner && !ownerLoading && (
+              <Link href="/admin">
+                <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                  Admin Panel
+                </Button>
+              </Link>
+            )}
             <div className="w-full sm:w-auto flex flex-row sm:flex-row items-center gap-2">
               <WalletButton />
             </div>
@@ -178,8 +227,6 @@ export default function Home() {
         <div className="slide-in-up">
           <RoundHistory />
         </div>
-        {/* Admin Panel (remove/comment for production) */}
-        <AdminPanel onStakeAmountUpdate={handleStakeAmountUpdate} />
       </div>
     </main>
   )

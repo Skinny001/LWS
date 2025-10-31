@@ -4,6 +4,8 @@ import { useState, useCallback } from "react"
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
 import { LSW_CONTRACT_ADDRESS, MINIMUM_STAKE } from "@/lib/hedera-config"
 import { LSW_ABI } from "@/lib/contract-abi"
+import {hbarToTinybar} from  "@/lib/format-utils"
+
 
 export function useContractWrite() {
   const { address, isConnected } = useAccount()
@@ -24,12 +26,13 @@ export function useContractWrite() {
         address: LSW_CONTRACT_ADDRESS as `0x${string}`,
         abi: LSW_ABI,
         functionName: "stake",
-        // allow caller to pass a custom value (must be >= MINIMUM_STAKE)
-        value: value ?? MINIMUM_STAKE,
+        value: MINIMUM_STAKE,
         account: address,
       })
+      console.log("reach here")
       return hash
     } catch (err) {
+      console.log("Stake error:", err)
       const errorMessage = err instanceof Error ? err.message : "Failed to execute stake"
       setError(errorMessage)
       return null

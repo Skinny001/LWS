@@ -1,5 +1,5 @@
 "use client"
-import { formatEther } from "@/lib/format-utils"
+import { formatEther, formatHbar} from "@/lib/format-utils"
 
 // ...existing code...
 //         ) : (
@@ -51,6 +51,7 @@ import { formatEther } from "@/lib/format-utils"
 
 
 import React, { useEffect, useState } from "react"
+import { form } from "viem/chains"
 
 interface Activity {
   id: string
@@ -96,8 +97,6 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
   }
 
   const formatAddress = (addr: string | undefined) => {
-    // Debug: log the address to see what's being passed
-    console.log("Formatting address:", addr)
     
     if (!addr) {
       console.warn("Address is undefined or null")
@@ -162,7 +161,7 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Amount: <span className="font-semibold text-green-600">
-                        {activity.data?.amount ? formatEther(activity.data.amount) : "0"} HBAR
+                        {activity.data?.amount ? formatHbar(activity.data.amount) : "0"} HBAR
                       </span>
                     </p>
                     {/* Debug info - remove this after fixing */}

@@ -42,3 +42,29 @@ export function formatAddress(address: string): string {
   if (!address) return ""
   return `${address.slice(0, 6)}...${address.slice(-4)}`
 }
+
+//hbar uses 8 decimals
+// the issue here is contract retunr bigint in string format
+export function formatHbar(value: bigint): string {
+  const decimals = 8
+  let divisor = BigInt(1)
+  for (let i = 0; i < decimals; i++) {
+    divisor *= BigInt(10)
+  }
+  const whole = value / divisor
+  const remainder = value % divisor
+
+  if (remainder === BigInt(0)) {
+    return whole.toString()
+  }
+
+  const remainderStr = remainder.toString().padStart(decimals, "0").replace(/0+$/, "")
+  return `${whole}.${remainderStr}`
+}
+
+
+
+export function hbarToTinybar(amount: string | number): bigint {
+  return BigInt(Math.floor(Number(amount) * 1e8)); // 1 HBAR = 10⁸ tinybar
+}
+
