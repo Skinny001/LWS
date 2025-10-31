@@ -5,7 +5,6 @@ import { useContractWrite } from "@/hooks/use-contract-write"
 import { Button } from "@/components/ui/button"
 import { formatEther, formatHbar} from "@/lib/format-utils"
 import { MINIMUM_STAKE } from "@/lib/hedera-config"
-import { parseEther } from "@/lib/format-utils"
 
 interface StakingInterfaceProps {
   isStakingAvailable: boolean

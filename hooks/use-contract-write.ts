@@ -4,8 +4,7 @@ import { useState, useCallback } from "react"
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi"
 import { LSW_CONTRACT_ADDRESS, MINIMUM_STAKE } from "@/lib/hedera-config"
 import { LSW_ABI } from "@/lib/contract-abi"
-import {hbarToTinybar} from  "@/lib/format-utils"
-
+import { parseEther } from "viem"; 
 
 export function useContractWrite() {
   const { address, isConnected } = useAccount()
@@ -21,12 +20,13 @@ export function useContractWrite() {
       return null
     }
 
+
     try {
       writeContract({
         address: LSW_CONTRACT_ADDRESS as `0x${string}`,
         abi: LSW_ABI,
         functionName: "stake",
-        value: MINIMUM_STAKE,
+        value: value * BigInt(1e10) ,
         account: address,
       })
       console.log("reach here")
