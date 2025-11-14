@@ -5,6 +5,7 @@ import { AdminPanel } from "@/components/admin-panel"
 import { useOwnerCheck } from "@/hooks/use-owner-check"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import Image from "next/image"
 
 export default function AdminPage() {
   const { isOwner, loading, isConnected } = useOwnerCheck()
@@ -25,9 +26,14 @@ export default function AdminPage() {
           <div className="max-w-7xl mx-auto px-2 sm:px-4 py-3 flex items-center justify-between">
             <Link href="/">
               <div className="flex flex-row items-center gap-2 cursor-pointer">
-                <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out">
-                  <span className="text-accent-foreground font-bold">LSW</span>
-                </div>
+                <Image 
+                  src="/LSW-logo.png" 
+                  alt="LSW Logo" 
+                  width={40} 
+                  height={40}
+                  className="w-10 h-10 rounded-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out"
+                  priority
+                />
                 <div>
                   <h1 className="text-lg sm:text-xl font-bold text-foreground">Last Staker Wins</h1>
                   <p className="text-xs text-muted-foreground">Admin Panel</p>
@@ -52,9 +58,14 @@ export default function AdminPage() {
           <div className="max-w-7xl mx-auto px-2 sm:px-4 py-3 flex items-center justify-between">
             <Link href="/">
               <div className="flex flex-row items-center gap-2 cursor-pointer">
-                <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out">
-                  <span className="text-accent-foreground font-bold">LSW</span>
-                </div>
+                <Image 
+                  src="/LSW-logo.png" 
+                  alt="LSW Logo" 
+                  width={40} 
+                  height={40}
+                  className="w-10 h-10 rounded-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out"
+                  priority
+                />
                 <div>
                   <h1 className="text-lg sm:text-xl font-bold text-foreground">Last Staker Wins</h1>
                   <p className="text-xs text-muted-foreground">Admin Panel</p>
@@ -82,9 +93,14 @@ export default function AdminPage() {
           <div className="max-w-7xl mx-auto px-2 sm:px-4 py-3 flex items-center justify-between">
             <Link href="/">
               <div className="flex flex-row items-center gap-2 cursor-pointer">
-                <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out">
-                  <span className="text-accent-foreground font-bold">LSW</span>
-                </div>
+                <Image 
+                  src="/LSW-logo.png" 
+                  alt="LSW Logo" 
+                  width={40} 
+                  height={40}
+                  className="w-10 h-10 rounded-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out"
+                  priority
+                />
                 <div>
                   <h1 className="text-lg sm:text-xl font-bold text-foreground">Last Staker Wins</h1>
                   <p className="text-xs text-muted-foreground">Admin Panel</p>
@@ -112,9 +128,14 @@ export default function AdminPage() {
         <div className="max-w-7xl mx-auto px-2 sm:px-4 py-3 flex items-center justify-between">
           <Link href="/">
             <div className="flex flex-row items-center gap-2 cursor-pointer">
-              <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out">
-                <span className="text-accent-foreground font-bold">LSW</span>
-              </div>
+              <Image 
+                src="/LSW-logo.png" 
+                alt="LSW Logo" 
+                width={40} 
+                height={40}
+                className="w-10 h-10 rounded-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out"
+                priority
+              />
               <div>
                 <h1 className="text-lg sm:text-xl font-bold text-foreground">Last Staker Wins</h1>
                 <p className="text-xs text-muted-foreground">Admin Panel</p>

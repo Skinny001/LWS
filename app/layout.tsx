@@ -10,6 +10,21 @@ export const metadata = {
   title: "Last Staker Wins - Hedera Game",
   description: "Compete for the prize pool on Hedera Testnet",
   generator: "v0.app",
+  icons: {
+    icon: "/favicon.ico",
+  },
+  openGraph: {
+    title: "Last Staker Wins - Hedera Game",
+    description: "Compete for the prize pool on Hedera Testnet",
+    images: [
+      {
+        url: "/LSW-logo.png",
+        width: 1200,
+        height: 630,
+        alt: "Last Staker Wins Logo",
+      },
+    ],
+  },
 }
 
 export default function RootLayout({
